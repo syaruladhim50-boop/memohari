@@ -2,6 +2,8 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import '../models/note.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'dart:io';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -17,8 +19,15 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
+    // Inisialisasi untuk Windows
+    if (Platform.isWindows) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
+    
     final documentsDir = await getApplicationDocumentsDirectory();
     final path = join(documentsDir.path, 'memohari.db');
+    
     return await openDatabase(
       path,
       version: 1,
