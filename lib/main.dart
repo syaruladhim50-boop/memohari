@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
+import 'utils/notification_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  final notificationService = NotificationService();
+  await notificationService.init();
+  
   runApp(const MemoHariApp());
 }
 

@@ -38,7 +38,8 @@ class DatabaseHelper {
             title TEXT NOT NULL,
             content TEXT NOT NULL,
             createdAt TEXT NOT NULL,
-            reminderTime TEXT
+            reminderTime TEXT,
+            notificationId INTEGER
           )
         ''');
       },
@@ -72,5 +73,15 @@ class DatabaseHelper {
   Future<int> deleteNote(int id) async {
     final db = await database;
     return await db.delete('notes', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> updateNotificationId(int noteId, int notificationId) async {
+  final db = await database;
+  return await db.update(
+    'notes',
+    {'notificationId': notificationId},
+    where: 'id = ?',
+    whereArgs: [noteId],
+  );
   }
 }

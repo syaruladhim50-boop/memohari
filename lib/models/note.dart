@@ -4,6 +4,7 @@ class Note {
   String content;
   DateTime createdAt;
   DateTime? reminderTime;
+  int? notificationId;
 
   Note({
     this.id,
@@ -11,6 +12,7 @@ class Note {
     required this.content,
     required this.createdAt,
     this.reminderTime,
+    this.notificationId,
   });
 
   Map<String, dynamic> toMap() {
@@ -20,6 +22,7 @@ class Note {
       'content': content,
       'createdAt': createdAt.toIso8601String(),
       'reminderTime': reminderTime?.toIso8601String(),
+      'notificationId': notificationId,
     };
   }
 
@@ -32,6 +35,7 @@ class Note {
       reminderTime: map['reminderTime'] != null
           ? DateTime.parse(map['reminderTime'])
           : null,
+      notificationId: map['notificationId'],
     );
   }
 }
