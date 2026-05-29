@@ -30,7 +30,7 @@ class DatabaseHelper {
     
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE notes(
@@ -39,9 +39,15 @@ class DatabaseHelper {
             content TEXT NOT NULL,
             createdAt TEXT NOT NULL,
             reminderTime TEXT,
-            notificationId INTEGER
+            notificationId INTEGER,
+            tag TEXT DEFAULT 'General'
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute("ALTER TABLE notes ADD COLUMN tag TEXT DEFAULT 'General'");
+        }
       },
     );
   }

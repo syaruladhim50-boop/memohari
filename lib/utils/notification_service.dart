@@ -26,6 +26,23 @@ class NotificationService {
     );
 
     await _notifications.initialize(settings);
+
+    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+        _notifications.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+
+    if (androidImplementation != null) {
+      try {
+        await androidImplementation.requestNotificationsPermission();
+      } catch (e) {
+        print('Error requesting notification permission: $e');
+      }
+      try {
+        await androidImplementation.requestExactAlarmsPermission();
+      } catch (e) {
+        print('Error requesting exact alarm permission: $e');
+      }
+    }
   }
 
   Future<void> scheduleNotification({
