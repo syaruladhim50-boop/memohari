@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../database/database_helper.dart';
 import '../models/note.dart';
 import 'add_note_screen.dart';
+import '../utils/settings_manager.dart';
 
 class FoldersScreen extends StatefulWidget {
   const FoldersScreen({super.key});
@@ -71,21 +72,24 @@ class _FoldersScreenState extends State<FoldersScreen> {
       displayedNotes = _notesByTag[_selectedTagFilter] ?? [];
     }
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           _selectedTagFilter == null ? 'FOLDER & TAGS' : 'TAG: ${_selectedTagFilter!.toUpperCase()}',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 20,
             letterSpacing: 2.0,
-            color: Color(0xFF00FF88),
+            color: theme.colorScheme.primary,
           ),
         ),
         leading: _selectedTagFilter != null
             ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : Colors.black87, size: 20),
                 onPressed: () {
                   setState(() {
                     _selectedTagFilter = null;
@@ -97,15 +101,23 @@ class _FoldersScreenState extends State<FoldersScreen> {
         backgroundColor: Colors.transparent,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00FF88)))
-          : _selectedTagFilter == null
-              ? _buildFolderGrid()
-              : _buildFilteredNoteList(displayedNotes),
+          ? Center(child: CircularProgressIndicator(color: theme.colorScheme.primary))
+          : RefreshIndicator(
+              onRefresh: _loadNotes,
+              color: theme.colorScheme.primary,
+              backgroundColor: theme.colorScheme.surface,
+              strokeWidth: 2.5,
+              child: _selectedTagFilter == null
+                  ? _buildFolderGrid()
+                  : _buildFilteredNoteList(displayedNotes),
+            ),
     );
   }
 
   Widget _buildFolderGrid() {
     final tags = ['General', 'Work', 'Personal', 'Ideas'];
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     // Icon mapping for each tag
     final Map<String, IconData> tagIcons = {
@@ -117,112 +129,123 @@ class _FoldersScreenState extends State<FoldersScreen> {
 
     // Color indicators
     final Map<String, Color> tagColors = {
-      'General': const Color(0xFF00FF88),
+      'General': theme.colorScheme.primary,
       'Work': const Color(0xFF1DB954),
       'Personal': Colors.purpleAccent,
       'Ideas': Colors.amberAccent,
     };
 
-    return Padding(
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Kategori Catatan',
             style: TextStyle(
-              color: Colors.white,
+              color: isDark ? Colors.white : Colors.black87,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'Kelola catatan berdasarkan folder dan tag.',
             style: TextStyle(
-              color: Color(0xFF9CA3AF),
+              color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
               fontSize: 13,
             ),
           ),
           const SizedBox(height: 24),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.1,
-              ),
-              itemCount: tags.length,
-              itemBuilder: (context, index) {
-                final tag = tags[index];
-                final count = _notesByTag[tag]?.length ?? 0;
-                final color = tagColors[tag]!;
-                final icon = tagIcons[tag]!;
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1.1,
+            ),
+            itemCount: tags.length,
+            itemBuilder: (context, index) {
+              final tag = tags[index];
+              final count = _notesByTag[tag]?.length ?? 0;
+              final color = tagColors[tag]!;
+              final icon = tagIcons[tag]!;
 
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      _selectedTagFilter = tag;
-                    });
-                  },
-                  borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF151515),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.04),
-                        width: 1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              final settings = SettingsManager.instance;
+
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedTagFilter = tag;
+                  });
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.04),
+                      width: 1,
                     ),
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(icon, color: color, size: 24),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              tag,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                    boxShadow: settings.glowEffects && isDark
+                        ? [
+                            BoxShadow(
+                              color: color.withOpacity(0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '$count Catatan',
-                              style: const TextStyle(
-                                color: Color(0xFF9CA3AF),
-                                fontSize: 12,
-                              ),
+                          ]
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
-                        ),
-                      ],
-                    ),
                   ),
-                );
-              },
-            ),
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(icon, color: color, size: 24),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tag,
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '$count Catatan',
+                            style: TextStyle(
+                              color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -230,6 +253,9 @@ class _FoldersScreenState extends State<FoldersScreen> {
   }
 
   Widget _buildFilteredNoteList(List<Note> notes) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (notes.isEmpty) {
       return Center(
         child: Column(
@@ -238,32 +264,32 @@ class _FoldersScreenState extends State<FoldersScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF151515),
+                color: theme.colorScheme.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: const Color(0xFF00FF88).withOpacity(0.1),
+                  color: theme.colorScheme.primary.withOpacity(0.1),
                   width: 2,
                 ),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.folder_open_rounded,
                 size: 48,
-                color: Color(0xFF9CA3AF),
+                color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Folder Kosong',
               style: TextStyle(
-                color: Colors.white,
+                color: isDark ? Colors.white : Colors.black87,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Belum ada catatan dengan tag ini.',
-              style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+              style: TextStyle(color: isDark ? const Color(0xFF9CA3AF) : Colors.black54, fontSize: 13),
             ),
           ],
         ),
@@ -277,15 +303,32 @@ class _FoldersScreenState extends State<FoldersScreen> {
         final note = notes[index];
         final hasReminder = note.reminderTime != null;
         
+        final settings = SettingsManager.instance;
+        
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFF151515),
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withOpacity(0.04),
+              color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.04),
               width: 1,
             ),
+            boxShadow: settings.glowEffects && isDark
+                ? [
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -295,7 +338,7 @@ class _FoldersScreenState extends State<FoldersScreen> {
                 children: [
                   Container(
                     width: 6,
-                    color: const Color(0xFF00FF88),
+                    color: theme.colorScheme.primary,
                   ),
                   Expanded(
                     child: InkWell(
@@ -319,62 +362,62 @@ class _FoldersScreenState extends State<FoldersScreen> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(
-                                  child: Text(
-                                    note.title,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                      color: Color(0xFFF5F5F5),
+                                  Expanded(
+                                    child: Text(
+                                      note.title,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: isDark ? const Color(0xFFF5F5F5) : Colors.black87,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete_outline, color: Color(0xFFCF6679)),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          backgroundColor: const Color(0xFF151515),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
-                                          ),
-                                          title: const Text('Hapus Catatan', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                          content: const Text('Apakah Anda yakin ingin menghapus catatan ini?', style: TextStyle(color: Color(0xFF9CA3AF))),
-                                          actions: [
-                                            TextButton(
-                                              child: const Text('Batal', style: TextStyle(color: Color(0xFF9CA3AF))),
-                                              onPressed: () => Navigator.of(context).pop(),
+                                  IconButton(
+                                    icon: Icon(Icons.delete_outline, color: theme.colorScheme.error),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            backgroundColor: theme.colorScheme.surface,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(16),
                                             ),
-                                            ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(0xFFCF6679),
-                                                foregroundColor: Colors.white,
+                                            title: Text('Hapus Catatan', style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
+                                            content: Text('Apakah Anda yakin ingin menghapus catatan ini?', style: TextStyle(color: isDark ? const Color(0xFF9CA3AF) : Colors.black54)),
+                                            actions: [
+                                              TextButton(
+                                                child: Text('Batal', style: TextStyle(color: isDark ? const Color(0xFF9CA3AF) : Colors.black54)),
+                                                onPressed: () => Navigator.of(context).pop(),
                                               ),
-                                              child: const Text('Hapus'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                                _deleteNote(note.id!);
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: theme.colorScheme.error,
+                                                  foregroundColor: Colors.white,
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  _deleteNote(note.id!);
+                                                },
+                                                child: const Text('Hapus'),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                               ],
                             ),
                             const SizedBox(height: 8),
                             Text(
                               note.content,
-                              style: const TextStyle(
-                                color: Color(0xFF9CA3AF),
+                              style: TextStyle(
+                                color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
                                 fontSize: 14,
                                 height: 1.4,
                               ),
@@ -382,23 +425,23 @@ class _FoldersScreenState extends State<FoldersScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 16),
-                            const Divider(color: Colors.white10, height: 1),
+                            Divider(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.06), height: 1),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.access_time_rounded,
                                       size: 14,
-                                      color: Color(0xFF9CA3AF),
+                                      color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       _dateFormat.format(note.createdAt),
-                                      style: const TextStyle(
-                                        color: Color(0xFF9CA3AF),
+                                      style: TextStyle(
+                                        color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
                                         fontSize: 12,
                                       ),
                                     ),
@@ -411,25 +454,25 @@ class _FoldersScreenState extends State<FoldersScreen> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF00FF88).withOpacity(0.1),
+                                      color: theme.colorScheme.primary.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: const Color(0xFF00FF88).withOpacity(0.3),
+                                        color: theme.colorScheme.primary.withOpacity(0.3),
                                         width: 1,
                                       ),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       children: [
                                         Icon(
                                           Icons.notifications_active_outlined,
                                           size: 12,
-                                          color: Color(0xFF00FF88),
+                                          color: theme.colorScheme.primary,
                                         ),
-                                        SizedBox(width: 4),
+                                        const SizedBox(width: 4),
                                         Text(
                                           'Pengingat',
                                           style: TextStyle(
-                                            color: Color(0xFF00FF88),
+                                            color: theme.colorScheme.primary,
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
                                           ),

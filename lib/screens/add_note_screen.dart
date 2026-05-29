@@ -42,14 +42,23 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFF00FF88), // header background color
-              onPrimary: Colors.black, // header text color
-              surface: Color(0xFF151515), // background of dialog
-              onSurface: Color(0xFFF5F5F5), // body text color
-            ),
+          data: theme.copyWith(
+            colorScheme: isDark 
+                ? const ColorScheme.dark(
+                    primary: Color(0xFF00FF88), // header background color
+                    onPrimary: Colors.black, // header text color
+                    surface: Color(0xFF151515), // background of dialog
+                    onSurface: Color(0xFFF5F5F5), // body text color
+                  )
+                : const ColorScheme.light(
+                    primary: Color(0xFF1DB954), // header background color
+                    onPrimary: Colors.white, // header text color
+                    surface: Colors.white, // background of dialog
+                    onSurface: Color(0xFF1F1F1F), // body text color
+                  ),
           ),
           child: child!,
         );
@@ -62,14 +71,23 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
         context: context,
         initialTime: TimeOfDay.fromDateTime(_selectedReminderTime ?? DateTime.now()),
         builder: (context, child) {
+          final theme = Theme.of(context);
+          final isDark = theme.brightness == Brightness.dark;
           return Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.dark(
-                primary: Color(0xFF00FF88),
-                onPrimary: Colors.black,
-                surface: Color(0xFF151515),
-                onSurface: Color(0xFFF5F5F5),
-              ),
+            data: theme.copyWith(
+              colorScheme: isDark
+                  ? const ColorScheme.dark(
+                      primary: Color(0xFF00FF88),
+                      onPrimary: Colors.black,
+                      surface: Color(0xFF151515),
+                      onSurface: Color(0xFFF5F5F5),
+                    )
+                  : const ColorScheme.light(
+                      primary: Color(0xFF1DB954),
+                      onPrimary: Colors.white,
+                      surface: Colors.white,
+                      onSurface: Color(0xFF1F1F1F),
+                    ),
             ),
             child: child!,
           );
@@ -94,9 +112,9 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
   Future<void> _saveNote() async {
     if (_titleController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Judul tidak boleh kosong'),
-          backgroundColor: Color(0xFFCF6679),
+        SnackBar(
+          content: const Text('Judul tidak boleh kosong'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
       return;
@@ -117,12 +135,12 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
         
         if (Platform.isWindows) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text(
                 'Pengingat disimpan (notifikasi hanya berjalan di HP)',
-                style: TextStyle(color: Colors.black),
+                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
               ),
-              backgroundColor: Color(0xFF00FF88),
+              backgroundColor: Theme.of(context).colorScheme.primary,
             ),
           );
         }
@@ -156,8 +174,11 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           widget.note == null ? 'TAMBAH CATATAN' : 'EDIT CATATAN',
@@ -178,23 +199,23 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
             // Title Input
             TextField(
               controller: _titleController,
-              style: const TextStyle(color: Color(0xFFF5F5F5), fontSize: 16),
+              style: TextStyle(color: isDark ? const Color(0xFFF5F5F5) : Colors.black87, fontSize: 16),
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 labelText: 'Judul',
-                labelStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                labelStyle: TextStyle(color: isDark ? const Color(0xFF9CA3AF) : Colors.black54),
                 hintText: 'Masukkan judul catatan',
-                hintStyle: const TextStyle(color: Colors.white24),
+                hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
                 filled: true,
-                fillColor: const Color(0xFF151515),
-                prefixIcon: const Icon(Icons.title_rounded, color: Color(0xFF00FF88)),
+                fillColor: theme.colorScheme.surface,
+                prefixIcon: Icon(Icons.title_rounded, color: theme.colorScheme.primary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.04)),
+                  borderSide: BorderSide(color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.04)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFF00FF88), width: 1.5),
+                  borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
                 ),
               ),
             ),
@@ -203,38 +224,38 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
             // Content Input
             TextField(
               controller: _contentController,
-              style: const TextStyle(color: Color(0xFFF5F5F5), fontSize: 16),
+              style: TextStyle(color: isDark ? const Color(0xFFF5F5F5) : Colors.black87, fontSize: 16),
               maxLines: 8,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 labelText: 'Isi Catatan',
                 alignLabelWithHint: true,
-                labelStyle: const TextStyle(color: Color(0xFF9CA3AF)),
+                labelStyle: TextStyle(color: isDark ? const Color(0xFF9CA3AF) : Colors.black54),
                 hintText: 'Tulis sesuatu yang menarik hari ini...',
-                hintStyle: const TextStyle(color: Colors.white24),
+                hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
                 filled: true,
-                fillColor: const Color(0xFF151515),
-                prefixIcon: const Padding(
-                  padding: EdgeInsets.only(bottom: 120),
-                  child: Icon(Icons.description_rounded, color: Color(0xFF00FF88)),
+                fillColor: theme.colorScheme.surface,
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(bottom: 120),
+                  child: Icon(Icons.description_rounded, color: theme.colorScheme.primary),
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.04)),
+                  borderSide: BorderSide(color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.04)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFF00FF88), width: 1.5),
+                  borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5),
                 ),
               ),
             ),
             const SizedBox(height: 24),
 
             // Tag Selector Section
-            const Text(
+            Text(
               'Pilih Tag / Folder',
               style: TextStyle(
-                color: Color(0xFF9CA3AF),
+                color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.5,
@@ -253,7 +274,9 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                       label: Text(
                         tag,
                         style: TextStyle(
-                          color: isSelected ? Colors.black : const Color(0xFF9CA3AF),
+                          color: isSelected 
+                              ? (isDark ? Colors.black : Colors.white) 
+                              : (isDark ? const Color(0xFF9CA3AF) : Colors.black54),
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -266,13 +289,15 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                           });
                         }
                       },
-                      selectedColor: const Color(0xFF00FF88),
-                      backgroundColor: const Color(0xFF151515),
-                      checkmarkColor: Colors.black,
+                      selectedColor: theme.colorScheme.primary,
+                      backgroundColor: theme.colorScheme.surface,
+                      checkmarkColor: isDark ? Colors.black : Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: isSelected ? const Color(0xFF00FF88) : Colors.white.withOpacity(0.04),
+                          color: isSelected 
+                              ? theme.colorScheme.primary 
+                              : (isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.04)),
                           width: 1,
                         ),
                       ),
@@ -285,11 +310,11 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
 
             // Reminder Switch Card
             Card(
-              color: const Color(0xFF151515),
+              color: theme.colorScheme.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: Colors.white.withOpacity(0.04),
+                  color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.04),
                   width: 1,
                 ),
               ),
@@ -297,14 +322,14 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: SwitchListTile(
-                  activeColor: const Color(0xFF00FF88),
-                  activeTrackColor: const Color(0xFF00FF88).withOpacity(0.3),
-                  inactiveThumbColor: Colors.grey.shade400,
-                  inactiveTrackColor: Colors.grey.shade800,
-                  title: const Text(
+                  activeColor: theme.colorScheme.primary,
+                  activeTrackColor: theme.colorScheme.primary.withOpacity(0.3),
+                  inactiveThumbColor: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                  inactiveTrackColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+                  title: Text(
                     'Setel Pengingat',
                     style: TextStyle(
-                      color: Color(0xFFF5F5F5),
+                      color: isDark ? const Color(0xFFF5F5F5) : Colors.black87,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -312,11 +337,11 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
                   subtitle: _hasReminder && _selectedReminderTime != null
                       ? Text(
                           '${_selectedReminderTime!.day}/${_selectedReminderTime!.month}/${_selectedReminderTime!.year} ${_selectedReminderTime!.hour}:${_selectedReminderTime!.minute.toString().padLeft(2, '0')}',
-                          style: const TextStyle(color: Color(0xFF00FF88), fontWeight: FontWeight.w600),
+                          style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
                         )
-                      : const Text(
+                      : Text(
                           'Belum ada pengingat aktif',
-                          style: TextStyle(color: Color(0xFF9CA3AF)),
+                          style: TextStyle(color: isDark ? const Color(0xFF9CA3AF) : Colors.black54),
                         ),
                   value: _hasReminder,
                   onChanged: (value) {
@@ -341,9 +366,9 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
               onPressed: _saveNote,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 54),
-                backgroundColor: const Color(0xFF00FF88),
-                foregroundColor: Colors.black,
-                shadowColor: const Color(0xFF00FF88).withOpacity(0.3),
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                shadowColor: theme.colorScheme.primary.withOpacity(0.3),
                 elevation: 6,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -352,7 +377,7 @@ class _AddNoteScreenState extends State<AddNoteScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.save_rounded, color: Colors.black),
+                  Icon(Icons.save_rounded, color: theme.colorScheme.onPrimary),
                   const SizedBox(width: 8),
                   Text(
                     widget.note == null ? 'Simpan Catatan' : 'Simpan Perubahan',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/settings_manager.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -8,246 +9,213 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _notificationSound = true;
-  bool _glowEffects = true;
-  bool _biometricLock = false;
-  double _fontSizeOffset = 0.0;
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
-      appBar: AppBar(
-        title: const Text(
-          'PENGATURAN',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            letterSpacing: 2.0,
-            color: Color(0xFF00FF88),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return ListenableBuilder(
+      listenable: SettingsManager.instance,
+      builder: (context, _) {
+        final settings = SettingsManager.instance;
+        
+        return Scaffold(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          appBar: AppBar(
+            title: Text(
+              'PENGATURAN',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+                letterSpacing: 2.0,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            elevation: 0,
+            backgroundColor: Colors.transparent,
           ),
-        ),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // User Profile Section
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF151515),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.04),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF00FF88).withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFF00FF88),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.person_rounded,
-                        color: Color(0xFF00FF88),
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Genesis Note Keeper',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Premium User',
-                          style: TextStyle(
-                            color: Color(0xFF00FF88),
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Preference Section
-            _buildSectionHeader('Preferensi UI & Glow'),
-            const SizedBox(height: 12),
-            _buildSettingsCard([
-              _buildSwitchTile(
-                icon: Icons.lens_blur_rounded,
-                title: 'Efek Cahaya Neon (Glow)',
-                subtitle: 'Aktifkan bayangan berpendar hijau neon',
-                value: _glowEffects,
-                onChanged: (val) {
-                  setState(() => _glowEffects = val);
-                },
-              ),
-              _buildDivider(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.format_size_rounded, color: Color(0xFF9CA3AF), size: 22),
-                            SizedBox(width: 12),
-                            Text(
-                              'Ukuran Teks',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          _fontSizeOffset == 0.0
-                              ? 'Normal'
-                              : _fontSizeOffset > 0
-                                  ? '+${_fontSizeOffset.toInt()}'
-                                  : '${_fontSizeOffset.toInt()}',
-                          style: const TextStyle(color: Color(0xFF00FF88), fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    Slider(
-                      value: _fontSizeOffset,
-                      min: -2.0,
-                      max: 4.0,
-                      divisions: 6,
-                      activeColor: const Color(0xFF00FF88),
-                      inactiveColor: Colors.white.withOpacity(0.08),
-                      onChanged: (val) {
-                        setState(() => _fontSizeOffset = val);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ]),
-
-            const SizedBox(height: 24),
-            _buildSectionHeader('Keamanan & Notifikasi'),
-            const SizedBox(height: 12),
-            _buildSettingsCard([
-              _buildSwitchTile(
-                icon: Icons.volume_up_outlined,
-                title: 'Suara Notifikasi',
-                subtitle: 'Mainkan efek suara untuk pengingat',
-                value: _notificationSound,
-                onChanged: (val) {
-                  setState(() => _notificationSound = val);
-                },
-              ),
-              _buildDivider(),
-              _buildSwitchTile(
-                icon: Icons.fingerprint_rounded,
-                title: 'Kunci Biometrik',
-                subtitle: 'Amankan catatan menggunakan sidik jari',
-                value: _biometricLock,
-                onChanged: (val) {
-                  setState(() => _biometricLock = val);
-                },
-              ),
-            ]),
-
-            const SizedBox(height: 24),
-            _buildSectionHeader('Informasi Aplikasi'),
-            const SizedBox(height: 12),
-            _buildSettingsCard([
-              _buildInfoTile(Icons.info_outline_rounded, 'Versi Aplikasi', '1.0.0 (Build 2026.05)'),
-              _buildDivider(),
-              _buildInfoTile(Icons.code_rounded, 'Arsitektur UI', 'Flutter AMOLED Minimalist'),
-            ]),
-            const SizedBox(height: 48),
-
-            // Footer Logo
-            Center(
+          body: RefreshIndicator(
+            onRefresh: () async {
+              // Just trigger a rebuild
+              setState(() {});
+            },
+            color: theme.colorScheme.primary,
+            backgroundColor: theme.colorScheme.surface,
+            strokeWidth: 2.5,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'GENESIS NOTES',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.15),
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 4,
-                      fontSize: 14,
+                  _buildSectionHeader('PREFERENSI APLIKASI'),
+                  const SizedBox(height: 12),
+                  
+                  // Main Settings Card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isDark 
+                            ? Colors.white.withOpacity(0.04) 
+                            : Colors.black.withOpacity(0.04),
+                        width: 1,
+                      ),
+                      boxShadow: settings.glowEffects && isDark
+                          ? [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withOpacity(0.05),
+                                blurRadius: 16,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Column(
+                      children: [
+                        // 1. Dark / Light Mode Switch
+                        _buildSwitchTile(
+                          icon: settings.isDarkMode 
+                              ? Icons.dark_mode_rounded 
+                              : Icons.light_mode_rounded,
+                          title: 'Mode Gelap & Terang',
+                          subtitle: settings.isDarkMode ? 'Tema Gelap AMOLED Aktif' : 'Tema Terang Aktif',
+                          value: settings.isDarkMode,
+                          activeColor: theme.colorScheme.primary,
+                          onChanged: (val) {
+                            settings.updateDarkMode(val);
+                          },
+                        ),
+                        
+                        _buildDivider(isDark),
+
+                        // 2. Glow Effects Switch
+                        _buildSwitchTile(
+                          icon: Icons.lens_blur_rounded,
+                          title: 'Efek Cahaya (Glow)',
+                          subtitle: 'Aktifkan bayangan berpendar hijau neon',
+                          value: settings.glowEffects,
+                          activeColor: theme.colorScheme.primary,
+                          onChanged: (val) {
+                            settings.updateGlowEffects(val);
+                          },
+                        ),
+
+                        _buildDivider(isDark),
+
+                        // 3. Font Size Offset Slider
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.format_size_rounded, 
+                                        color: isDark ? const Color(0xFF9CA3AF) : Colors.black54, 
+                                        size: 22
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Ukuran Teks',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : Colors.black87, 
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    settings.fontSizeOffset == 0.0
+                                        ? 'Normal'
+                                        : settings.fontSizeOffset > 0
+                                            ? '+${settings.fontSizeOffset.toInt()}'
+                                            : '${settings.fontSizeOffset.toInt()}',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.primary, 
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Slider(
+                                value: settings.fontSizeOffset,
+                                min: -2.0,
+                                max: 4.0,
+                                divisions: 6,
+                                activeColor: theme.colorScheme.primary,
+                                inactiveColor: isDark 
+                                    ? Colors.white.withOpacity(0.08) 
+                                    : Colors.black.withOpacity(0.08),
+                                onChanged: (val) {
+                                  settings.updateFontSizeOffset(val);
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Futuristic Productivity Suite',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.08),
-                      fontSize: 10,
+                  
+                  const SizedBox(height: 48),
+
+                  // Footer Logo
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          'MEMOHARI CATATAN',
+                          style: TextStyle(
+                            color: isDark 
+                                ? Colors.white.withOpacity(0.15) 
+                                : Colors.black.withOpacity(0.15),
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 4,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Aplikasi Catatan Produktivitas Anda',
+                          style: TextStyle(
+                            color: isDark 
+                                ? Colors.white.withOpacity(0.08) 
+                                : Colors.black.withOpacity(0.08),
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildSectionHeader(String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(left: 8.0),
       child: Text(
         title,
-        style: const TextStyle(
-          color: Color(0xFF9CA3AF),
+        style: TextStyle(
+          color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
           fontSize: 13,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.0,
         ),
-      ),
-    );
-  }
-
-  Widget _buildSettingsCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF151515),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.04),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: children,
       ),
     );
   }
@@ -257,59 +225,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String title,
     required String subtitle,
     required bool value,
+    required Color activeColor,
     required ValueChanged<bool> onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SwitchListTile(
       value: value,
       onChanged: onChanged,
-      activeColor: const Color(0xFF00FF88),
-      activeTrackColor: const Color(0xFF00FF88).withOpacity(0.3),
-      inactiveThumbColor: Colors.grey.shade400,
-      inactiveTrackColor: Colors.grey.shade800,
-      secondary: Icon(icon, color: const Color(0xFF9CA3AF), size: 22),
+      activeColor: activeColor,
+      activeTrackColor: activeColor.withOpacity(0.3),
+      inactiveThumbColor: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+      inactiveTrackColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+      secondary: Icon(
+        icon, 
+        color: isDark ? const Color(0xFF9CA3AF) : Colors.black54, 
+        size: 22
+      ),
       title: Text(
         title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black87,
+          fontWeight: FontWeight.bold,
           fontSize: 15,
         ),
       ),
       subtitle: Text(
         subtitle,
-        style: const TextStyle(
-          color: Color(0xFF9CA3AF),
+        style: TextStyle(
+          color: isDark ? const Color(0xFF9CA3AF) : Colors.black54,
           fontSize: 12,
         ),
       ),
     );
   }
 
-  Widget _buildInfoTile(IconData icon, String title, String value) {
-    return ListTile(
-      leading: Icon(icon, color: const Color(0xFF9CA3AF), size: 22),
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 15,
-        ),
-      ),
-      trailing: Text(
-        value,
-        style: const TextStyle(
-          color: Color(0xFF9CA3AF),
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
+  Widget _buildDivider(bool isDark) {
     return Divider(
-      color: Colors.white.withOpacity(0.03),
+      color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.03),
       height: 1,
       indent: 16,
       endIndent: 16,

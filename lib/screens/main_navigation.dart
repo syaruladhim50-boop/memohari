@@ -27,18 +27,21 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF0D0D0D),
+          color: theme.scaffoldBackgroundColor,
           border: Border(
             top: BorderSide(
-              color: Colors.white.withOpacity(0.04),
+              color: isDark ? Colors.white.withOpacity(0.04) : Colors.black.withOpacity(0.04),
               width: 1,
             ),
           ),
@@ -49,15 +52,15 @@ class _MainNavigationState extends State<MainNavigation> {
             child: Container(
               height: 64,
               decoration: BoxDecoration(
-                color: const Color(0xFF151515).withOpacity(0.8),
+                color: theme.colorScheme.surface.withOpacity(0.8),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.05),
+                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.08),
                     blurRadius: 16,
                     offset: const Offset(0, -4),
                   ),
@@ -80,6 +83,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = _selectedIndex == index;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return InkWell(
       onTap: () => _onItemTapped(index),
       borderRadius: BorderRadius.circular(16),
@@ -88,10 +94,10 @@ class _MainNavigationState extends State<MainNavigation> {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF00FF88).withOpacity(0.1) : Colors.transparent,
+          color: isSelected ? theme.colorScheme.primary.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? const Color(0xFF00FF88).withOpacity(0.2) : Colors.transparent,
+            color: isSelected ? theme.colorScheme.primary.withOpacity(0.2) : Colors.transparent,
             width: 1,
           ),
         ),
@@ -100,15 +106,15 @@ class _MainNavigationState extends State<MainNavigation> {
           children: [
             Icon(
               icon,
-              color: isSelected ? const Color(0xFF00FF88) : const Color(0xFF9CA3AF),
+              color: isSelected ? theme.colorScheme.primary : (isDark ? const Color(0xFF9CA3AF) : Colors.black54),
               size: 22,
             ),
             if (isSelected) ...[
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(
-                  color: Color(0xFF00FF88),
+                style: TextStyle(
+                  color: theme.colorScheme.primary,
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
